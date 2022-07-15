@@ -1,15 +1,16 @@
 ﻿@page "/breweries"
 @using Brewd.Shared
 @using Brewd.Shared.Models
+@using Brewd.Client.Services
 @inject HttpClient Http
 
-<PageTitle>Brewd | Find Breweries</PageTitle>
+<PageTitle>🍺 Brewd | Browse All</PageTitle>
 
 <h1>Top Breweries</h1>
 
 <p>This component demonstrates fetching data from the server.</p>
 
-@if (breweries == null)
+@if (BreweryList == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -26,7 +27,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var brewery in breweries)
+            @foreach (var brewery in BreweryList)
             {
                 <tr>
                     <td>@brewery.Name</td>
@@ -41,10 +42,28 @@ else
 }
 
 @code {
-    private Brewery[]? breweries;
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "sort")]
+    public string? SortOrder { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "by_city")]
+    public string? ByCity { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "by_type")]
+    public string? ByType { get; set; }
+
+    public List<Brewery> BreweryList { get; set; }
+
+    [Inject]
+    public IBreweryService BreweryService { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        breweries = await Http.GetFromJsonAsync<Brewery[]>("/api/breweries");
+        BreweryList = (await BreweryService.GetBreweries(new BreweriesRequest
+        {
+            ByCity = ByCity,
+        })).ToList();
     }
 }

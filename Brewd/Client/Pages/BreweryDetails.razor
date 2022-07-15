@@ -1,0 +1,36 @@
+﻿@page "/breweries/{id}"
+@using Brewd.Shared
+@using Brewd.Shared.Models
+@inject HttpClient Http
+
+<PageTitle>Brewd | Find Breweries</PageTitle>
+
+<h1>Brewery Details</h1>
+
+@if (res == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    
+}
+
+@code {
+    [Parameter]
+    public string? Id { get; set; }
+
+    private BreweryResponse res;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // res = await Http.GetFromJsonAsync<BreweriesResponse>("/api/breweries");
+        var response = await Http.GetStringAsync("https://api.openbrewerydb.org/breweries/" + Id);
+        
+        if (res is null)
+        {
+            // Redirect to error page
+            
+        }
+    }
+}

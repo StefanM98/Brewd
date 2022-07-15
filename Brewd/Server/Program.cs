@@ -9,10 +9,15 @@ var connectionString = builder.Configuration.GetConnectionString("AppDb");
 // Add services
 builder.Services.AddDbContext<BreweryContext>(
         options => options.UseSqlServer(connectionString));
-builder.Services.AddFastEndpoints();
+
+builder.Services.AddFastEndpoints(o =>
+{
+    o.SourceGeneratorDiscoveredTypes = DiscoveredTypes.All;
+});
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-builder.Services.AddSwaggerDoc();
+builder.Services.AddSwaggerDoc(addJWTBearerAuth: false);
 
 var app = builder.Build();
 
@@ -33,7 +38,6 @@ app.UseStaticFiles();
 app.UseRouting();
 app.MapRazorPages();
 app.MapControllers();
-app.MapFallbackToFile("index.html");
 
 // Configure FastEndpoints
 app.UseFastEndpoints(c =>
@@ -44,5 +48,7 @@ app.UseFastEndpoints(c =>
 // Configure Swagger
 app.UseOpenApi();
 app.UseSwaggerUi3(c => c.ConfigureDefaults());
+
+app.MapFallbackToFile("index.html");
 
 app.Run();
