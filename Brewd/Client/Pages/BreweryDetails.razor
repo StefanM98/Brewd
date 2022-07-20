@@ -1,4 +1,5 @@
 ﻿@page "/breweries/{id}"
+@using Brewd.Client.Services
 @using Brewd.Shared
 @using Brewd.Shared.Models
 @inject HttpClient Http
@@ -7,30 +8,29 @@
 
 <h1>Brewery Details</h1>
 
-@if (res == null)
+@if (brewery == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    
+    <div>
+        
+    </div>
 }
 
 @code {
+    [Inject]
+    public IBreweryService BreweryService { get; set; }
+
     [Parameter]
     public string? Id { get; set; }
-
-    private BreweryResponse res;
+    
+    private BreweryModel? brewery;
 
     protected override async Task OnInitializedAsync()
     {
-        // res = await Http.GetFromJsonAsync<BreweriesResponse>("/api/breweries");
-        var response = await Http.GetStringAsync("https://api.openbrewerydb.org/breweries/" + Id);
-        
-        if (res is null)
-        {
-            // Redirect to error page
-            
-        }
+        brewery = await BreweryService.GetBrewery(Id);
+
     }
 }

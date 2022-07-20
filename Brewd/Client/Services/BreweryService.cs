@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using System.Collections.Specialized;
+using System.Net.Http.Json;
 using System.Web;
 using Brewd.Shared.Contracts;
 using Brewd.Shared.Models;
@@ -7,61 +8,104 @@ namespace Brewd.Client.Services
 {
     public class BreweryService : IBreweryService
     {
-        private readonly HttpClient _http;
-        private readonly string host = "api.openbrewerydb.orgs";
-        
+        private readonly HttpClient _httpClient;
+
+        private Uri GetUri(string path, string? query)
+        {
+            var reqBuilder = new UriBuilder(_httpClient.BaseAddress)
+            {
+                Path = path,
+                Query = query
+            };
+
+            return reqBuilder.Uri;
+
+        }
+
         public BreweryService(HttpClient httpClient)
         {
-            _http = httpClient;
+            _httpClient = httpClient; 
         }
         
-
-        public async Task<IEnumerable<Brewery>> GetBreweries(BreweriesRequest? req)
+        public async Task<IEnumerable<BreweryModel>> GetBreweries(BreweriesRequest? req)
         {
-            var uriBuilder = new UriBuilder($"{host}/breweries");
-            var parameters = HttpUtility.ParseQueryString(string.Empty);
-            
-            parameters["by-city"] = req?.ByCity;
-            
-            uriBuilder.Query = parameters.ToString();
+            if (req == null) throw new ArgumentNullException(nameof(req));
 
-            IEnumerable<Brewery>? breweries = await _http.GetFromJsonAsync<IEnumerable<Brewery>>(uriBuilder.Uri);
+            // Parse query parameters
+            NameValueCollection parameters = HttpUtility.ParseQueryString(string.Empty);
+            parameters["by_city"] = req?.ByCity;
+            parameters["by_postal"] = req?.ByPostal;
+            parameters["per_page"] = req?.PerPage?.ToString();
+            parameters["page"] = req?.Page?.ToString();
+            parameters["by_type"] = req?.ByType.ToString();
+
+            var uri = GetUri("/api/breweries", parameters.ToString());
+           
+            IEnumerable<BreweryResponse>? breweries = await _httpClient
+                .GetFromJsonAsync<IEnumerable<BreweryResponse>>(uri);
+
+            var result = new List<BreweryModel>();
             
-            if (breweries is null)
+            foreach (BreweryResponse response in breweries)
             {
-                breweries = new List<Brewery>();
+                var entity = ToEntity(response);
+                if (entity is not null) result.Add(entity);
             }
 
-            return breweries;
+            return result;
         }
 
-        public async Task<Brewery> GetBrewery(string Id)
+        public async Task<BreweryModel?> GetBrewery(string Id)
         {
-            return await _http.GetFromJsonAsync<Brewery>($"{host}/breweries/{Id}");
+            if (Id == null) throw new ArgumentNullException(nameof(Id));
+            var uri = GetUri($"/api/breweries/{Id}", null);
+            var res = await _httpClient.GetFromJsonAsync<BreweryResponse>(uri);
+            return ToEntity(res);
         }
 
-        public async Task<Brewery> GetRandomBrewery()
+        public async Task<BreweryModel?> GetRandomBrewery()
         {
-            return await _http.GetFromJsonAsync<Brewery>($"{host}/breweries/random");
+            var uri = GetUri($"/api/breweries/random", null);
+            var res = await _httpClient.GetFromJsonAsync<BreweryResponse>(uri);
+            return ToEntity(res);
         }
 
-        public async Task<IEnumerable<Brewery>> Search(string query)
+        public async Task<IEnumerable<BreweryModel?>> Search(string query)
         {
-            var uriBuilder = new UriBuilder($"{host}/breweries/search");
+            // Parse query parameters
             var parameters = HttpUtility.ParseQueryString(string.Empty);
-
             parameters["query"] = query;
 
-            uriBuilder.Query = parameters.ToString();
+            var uri = GetUri($"/api/breweries/search", parameters.ToString());
 
-            IEnumerable<Brewery>? breweries = await _http.GetFromJsonAsync<IEnumerable<Brewery>>(uriBuilder.Uri);
+            IEnumerable<BreweryModel>? breweries = await _httpClient
+                .GetFromJsonAsync<IEnumerable<BreweryModel>>(uri);
 
             if (breweries is null)
             {
-                breweries = new List<Brewery>();
+                breweries = new List<BreweryModel>();
             }
 
             return breweries;
+        }
+        
+        static BreweryModel ToEntity(BreweryResponse response)
+        {
+            return new BreweryModel
+            {
+                BreweryID = response.ID,
+                Name = response.Name,
+                Street = response.Street,
+                Address2 = response.Address2,
+                Address3 = response.Address3,
+                City = response.City,
+                PostalCode = response.PostalCode,
+                BreweryType = Enum.Parse<TypeOfBrewery>(response.BreweryType.ToString()),
+                WebsiteURL = response.WebsiteURL,
+                Phone = response.Phone,
+                CreatedAt = response.CreatedAt,
+                UpdatedAt = response.UpdatedAt
+            };
         }
     }
 }

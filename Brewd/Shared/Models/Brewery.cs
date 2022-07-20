@@ -1,18 +1,30 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Brewd.Shared.Models;
 
 public enum TypeOfBrewery
 {
-    micro, nano, regional, brewpub, large, planning, bar, contract, proprietor, closed
+    micro, 
+    nano, 
+    regional, 
+    brewpub, 
+    large,
+    planning, 
+    bar, 
+    contract, 
+    proprietor, 
+    closed
 }
 
-public class Brewery
+[Table("Breweries")]
+public class BreweryModel
 {
+    [Key]
+    [Required]
     public string BreweryID { get; set; }
     [Required]
     public string Name { get; set; }
-    [Required]
     public TypeOfBrewery BreweryType { get; set; }
     [Required]
     public string Street { get; set; }
@@ -30,7 +42,7 @@ public class Brewery
     public string Latitude { get; set; }
     public string Phone { get; set; }
     public string WebsiteURL { get; set; }
+    [Timestamp]
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-    // public IEnumerable<string> Tags { get; set; }
 }

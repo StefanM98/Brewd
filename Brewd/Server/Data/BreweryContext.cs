@@ -5,20 +5,18 @@ namespace Brewd.Server.Data
 {
     public class BreweryContext : DbContext
     {
-        public DbSet<Brewery> Breweries { get; set; }
-
-        public BreweryContext(DbContextOptions<BreweryContext> options): base(options) { }
-        public BreweryContext() { }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public BreweryContext()
         {
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
-                .Build();
+        }
 
-            var connectionString = configuration.GetConnectionString("AppDb");
-            optionsBuilder.UseSqlServer(connectionString);
+        public BreweryContext(DbContextOptions<BreweryContext> options)
+            : base(options) { }
+
+        public DbSet<BreweryModel> Breweries { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<BreweryModel>().ToTable("Breweries");
         }
     }
 }

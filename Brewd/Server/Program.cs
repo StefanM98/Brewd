@@ -1,14 +1,37 @@
-﻿using FastEndpoints;
-using Microsoft.EntityFrameworkCore;
+﻿using Brewd.Server.Data;
+using FastEndpoints;
 using FastEndpoints.Swagger;
-using Brewd.Server.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Net;
 
+// Setup web app builder
 var builder = WebApplication.CreateBuilder(args);
-var connectionString = builder.Configuration.GetConnectionString("AppDb");
 
-// Add services
-builder.Services.AddDbContext<BreweryContext>(
-        options => options.UseSqlServer(connectionString));
+var connection = builder.Environment.IsDevelopment()
+    ? "LocalAppDb"
+    : "AppDb";
+
+var connectionString = builder.Configuration.GetConnectionString(connection);
+
+// Builder development services
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+} 
+else
+{
+    builder.Services.AddHttpsRedirection(options =>
+    {
+        options.RedirectStatusCode = (int)HttpStatusCode.PermanentRedirect;
+        options.HttpsPort = 443;
+    });
+}
+
+// Application services
+builder.Services.AddDbContext<BreweryContext>(options =>
+    options.UseSqlServer(connectionString));
+
+builder.Services.AddSwaggerDoc(addJWTBearerAuth: false);
 
 builder.Services.AddFastEndpoints(o =>
 {
@@ -17,27 +40,40 @@ builder.Services.AddFastEndpoints(o =>
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-builder.Services.AddSwaggerDoc(addJWTBearerAuth: false);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Environment-specific configuration
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
+    app.UseDeveloperExceptionPage();
 }
 else
 {
+    app.UseHttpsRedirection();
+    app.UseMigrationsEndPoint();
     app.UseExceptionHandler("/Error");
 }
 
-// Configure client hosting
-app.UseHttpsRedirection();
+// Initialize Database
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    var context = services.GetRequiredService<BreweryContext>();
+    context.Database.EnsureCreated();
+
+    DbInitializer.Initialize(context);
+}
+
+// Application configuration 
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 app.UseRouting();
 app.MapRazorPages();
 app.MapControllers();
+app.UseAuthorization();
 
 // Configure FastEndpoints
 app.UseFastEndpoints(c =>
@@ -49,6 +85,7 @@ app.UseFastEndpoints(c =>
 app.UseOpenApi();
 app.UseSwaggerUi3(c => c.ConfigureDefaults());
 
+// Fallback
 app.MapFallbackToFile("index.html");
 
 app.Run();

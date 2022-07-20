@@ -2,16 +2,14 @@
 
 namespace Brewd.Shared.Contracts;
 
-
+public enum SortOrder
+{
+    asc,
+    desc
+}
 
 public class BreweriesRequest
 {
-    private enum SortOrder
-    {
-        asc,
-        desc
-    }
-
     public int? Page { get; set; }
 
     public int? PerPage { get; set; } 

@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+	<OutputType>Exe</OutputType>
+	<BaseOutputPath>C:\Users\stefa\Documents\Projects\Brewd\bin</BaseOutputPath>
+	<UserSecretsId>3686dbe7-6b33-4e20-94f7-a88921deb302</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

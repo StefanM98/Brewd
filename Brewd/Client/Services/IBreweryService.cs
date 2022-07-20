@@ -5,9 +5,9 @@ namespace Brewd.Client.Services;
 
 public interface IBreweryService
 {
-    Task<IEnumerable<Brewery>> GetBreweries(BreweriesRequest? req);
-    Task<Brewery> GetBrewery(string Id);
-    Task<IEnumerable<Brewery>> Search(string query);
-    Task<Brewery> GetRandomBrewery();
+    Task<IEnumerable<BreweryModel>> GetBreweries(BreweriesRequest? req);
+    Task<BreweryModel?> GetBrewery(string Id);
+    Task<IEnumerable<BreweryModel?>> Search(string query);
+    Task<BreweryModel?> GetRandomBrewery();
     
 }

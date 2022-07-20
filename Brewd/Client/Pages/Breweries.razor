@@ -2,7 +2,6 @@
 @using Brewd.Shared
 @using Brewd.Shared.Models
 @using Brewd.Client.Services
-@inject HttpClient Http
 
 <PageTitle>🍺 Brewd | Browse All</PageTitle>
 
@@ -43,27 +42,61 @@ else
 
 @code {
     [Parameter]
-    [SupplyParameterFromQuery(Name = "sort")]
+    [SupplyParameterFromQuery(Name = "page")]
+    public int? Page { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "per_page")]
+    public int? PerPage { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "order")]
     public string? SortOrder { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "sort")]
+    public string? SortBy { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "by_type")]
+    public string? ByType { get; set; }
 
     [Parameter]
     [SupplyParameterFromQuery(Name = "by_city")]
     public string? ByCity { get; set; }
 
     [Parameter]
-    [SupplyParameterFromQuery(Name = "by_type")]
-    public string? ByType { get; set; }
+    [SupplyParameterFromQuery(Name = "by_state")]
+    public string? ByState { get; set; }
 
-    public List<Brewery> BreweryList { get; set; }
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "by_name")]
+    public string? ByName { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "by_postal")]
+    public string? ByPostal { get; set; }
+
+
+    public IEnumerable<BreweryModel> BreweryList { get; set; }
 
     [Inject]
     public IBreweryService BreweryService { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        BreweryList = (await BreweryService.GetBreweries(new BreweriesRequest
+        BreweriesRequest req = new BreweriesRequest
         {
+            Page = Page,
+            PerPage = PerPage,
+            SortBy = SortBy,
+            ByType = ByType is not null ? Enum.Parse<TypeOfBrewery>(ByType) : null,
             ByCity = ByCity,
-        })).ToList();
+            ByState = ByState,
+            ByName = ByName,
+            ByPostal = ByPostal
+        };
+
+        BreweryList = await BreweryService.GetBreweries(req);
     }
 }

@@ -1,6 +1,11 @@
-﻿namespace Brewd.Shared.Contracts;
+﻿using Brewd.Shared.Models;
 
-public class BreweriesResponse
+namespace Brewd.Shared.Contracts;
+
+public class BreweriesResponse : List<BreweryResponse> 
 {
-    public IEnumerable<BreweryResponse> Breweries { get; set; }
+    public BreweriesResponse()
+    {
+        new List<BreweryResponse>();
+    }
 }

@@ -348,3 +348,5 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+/Brewd/Server/Properties/serviceDependencies.local.json
+/Brewd/Server/Properties/ServiceDependencies/local
