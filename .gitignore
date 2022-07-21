@@ -350,3 +350,4 @@ MigrationBackup/
 .ionide/
 /Brewd/Server/Properties/serviceDependencies.local.json
 /Brewd/Server/Properties/ServiceDependencies/local
+/Brewd/Server/Properties/ServiceDependencies/main_brewd/secrets1.arm.json

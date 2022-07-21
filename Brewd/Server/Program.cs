@@ -3,15 +3,15 @@ using FastEndpoints;
 using FastEndpoints.Swagger;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
+using Azure.Identity;
 
 // Setup web app builder
 var builder = WebApplication.CreateBuilder(args);
 
-var connection = builder.Environment.IsDevelopment()
-    ? "LocalAppDb"
-    : "AppDb";
+var keyVaultEndpoint = new Uri(Environment.GetEnvironmentVariable("SecretsUri"));
+builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
 
-var connectionString = builder.Configuration.GetConnectionString(connection);
+var connectionString = builder.Configuration.GetConnectionString("AppDb");
 
 // Builder development services
 if (builder.Environment.IsDevelopment())
@@ -62,6 +62,7 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
 
     var context = services.GetRequiredService<BreweryContext>();
+    
     context.Database.EnsureCreated();
 
     DbInitializer.Initialize(context);
